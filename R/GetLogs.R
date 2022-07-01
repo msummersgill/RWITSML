@@ -1,6 +1,6 @@
-#' Pull List of Wells from Motive's REST API for a given customer
+#' Pull a list of logs for a given well from a WITSML Store
 #'
-#' @param hub Which customer hub to use
+#' @param url url for the WITSML Data Store
 #' @param user Username for the authenticating user
 #' @param password Username for the authenticating user
 #' @param uidWell Unique Identifier for the Parent Well

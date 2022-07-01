@@ -1,9 +1,9 @@
-#' Pull List of Wells from Motive's REST API for a given customer
+#' Test connection and capabilities of a WITSML Data Store
 #'
-#' @param hub Which customer hub to use
+#' @param url url for the WITSML Data Store
 #' @param user Username for the authenticating user
 #' @param password Username for the authenticating user
-#' @return A data.table with all customer hubs available
+#' @return A summary of server capabilities
 #' @examples
 #' RWITSML::TestHub(url = "https://hub.us.pason.com/hub/witsml/store",
 #'                  user = hpidc::GetKeys()$pason$user,
