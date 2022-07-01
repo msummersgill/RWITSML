@@ -1,0 +1,17 @@
+Package: RWITSML
+Type: Package
+Title: R package to interact with WITSML stores
+Version: 0.0.1
+Authors@R: person("Matt", "Summersgill", email = "matt.summersgill@hpidc.com",role = c("aut", "cre"))
+Description: Provides functions for interacting with WITSML stores and extracting data for use with R
+License: License: MPL-2.0
+Imports: 
+  data.table,
+  curl,
+  magrittr,
+  stringi,
+  XML,
+  jsonlite
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
