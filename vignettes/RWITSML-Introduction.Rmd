@@ -1,0 +1,43 @@
+---
+title: "RWITSML-Introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RWITSML-Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(RWITSML)
+```
+
+
+## Test a Connection
+
+```{r}
+RWITSML::TestHub(url = "https://hub.us.pason.com/hub/witsml/store",
+                 user = hpidc::GetKeys()$pason$user,
+                 password = hpidc::GetKeys()$pason$password,
+                 verbose = TRUE)
+```
+
+
+## Get A List of Wells
+
+```{r}
+WL <- RWITSML::GetWells(url = "https://hub.us.pason.com/hub/witsml/store",
+                        user = hpidc::GetKeys()$pason$user,
+                        password = hpidc::GetKeys()$pason$password,
+                        verbose = FALSE)
+
+WL[statusWell == "drilling"][, .(uid, operator, name, state)]
+
+```
+

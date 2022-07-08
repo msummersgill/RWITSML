@@ -61,18 +61,18 @@ GetWells <- function(url = NULL,
 
   WellList <- XML::xmlToList(Root,addAttributes = TRUE)
 
-  Wells <- data.table(uid = sapply(Wells, `[[`, ".attrs"),
-                      name = sapply(Wells, `[[`, "name"),
-                      field = sapply(Wells, `[[`, "field"),
-                      country = sapply(Wells, `[[`, "country"),
-                      state = sapply(Wells, `[[`, "state"),
-                      county = sapply(Wells, `[[`, "county"),
-                      timeZone = sapply(Wells, `[[`, "timeZone"),
-                      operator = sapply(Wells, `[[`, "operator"),
-                      numAPI = sapply(Wells, `[[`, "numAPI"),
-                      statusWell = sapply(Wells, `[[`, "statusWell"),
-                      dTimSpud = sapply(Wells, `[[`, "dTimSpud"),
-                      dTimPa = sapply(Wells, `[[`, "dTimPa")
+  Wells <- data.table(uid = sapply(WellList, `[[`, ".attrs"),
+                      name = sapply(WellList, `[[`, "name"),
+                      field = sapply(WellList, `[[`, "field"),
+                      country = sapply(WellList, `[[`, "country"),
+                      state = sapply(WellList, `[[`, "state"),
+                      county = sapply(WellList, `[[`, "county"),
+                      timeZone = sapply(WellList, `[[`, "timeZone"),
+                      operator = sapply(WellList, `[[`, "operator"),
+                      numAPI = sapply(WellList, `[[`, "numAPI"),
+                      statusWell = sapply(WellList, `[[`, "statusWell"),
+                      dTimSpud = sapply(WellList, `[[`, "dTimSpud"),
+                      dTimPa = sapply(WellList, `[[`, "dTimPa")
   )
 
 
