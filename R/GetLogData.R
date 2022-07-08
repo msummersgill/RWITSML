@@ -22,19 +22,29 @@
 #'                     endDateTimeIndex = "2022-04-01T00:04:59+00:00",
 #'                     verbose = FALSE)
 #'
+#' RWITSML::GetLogData(url = "https://hub.us.pason.com/hub/witsml/store",
+#'                     user = hpidc::GetKeys()$pason$user,
+#'                     password = hpidc::GetKeys()$pason$password,
+#'                     uidWell = "us_27990298",
+#'                     uid = "us_27990298_wb1_log_1",
+#'                     curves = c("GAM","INCL","AZ"),
+#'                     startIndex = 1,
+#'                     endIndex = 24645,
+#'                     verbose = FALSE)
+#'
 
 GetLogData <- function(url = NULL,
-                         user = NULL,
-                         password = NULL,
-                         uidWell = "us_27990298",
-                         uid = "us_27990298_wb1_log_dfr_time_1s",
-                         curves = c("TIME","DEPT","BDEP"),
-                         startDateTimeIndex = NULL,
-                         endDateTimeIndex = NULL,
-                         startIndex = NULL,
-                         endIndex = NULL,
-                         printProgress = TRUE,
-                         verbose = FALSE) {
+                       user = NULL,
+                       password = NULL,
+                       uidWell = "us_27990298",
+                       uid = "us_27990298_wb1_log_dfr_time_1s",
+                       curves = c("TIME","DEPT","BDEP"),
+                       startDateTimeIndex = NULL,
+                       endDateTimeIndex = NULL,
+                       startIndex = NULL,
+                       endIndex = NULL,
+                       printProgress = TRUE,
+                       verbose = FALSE) {
 
   H <- GetLogHeader(url = url,
                     user = user,
@@ -46,10 +56,18 @@ GetLogData <- function(url = NULL,
   ## Key of mnemonics and use the curves requested as key to select relevant rows
   ## TODO: check and see if we can just map everything instead of defaulting to character
   setkey(H$logCurveInfoDT,mnemonic)
-  Curves <- H$logCurveInfoDT[.(unique(c(H$indexCurve$text,curves)))]
+
+  curvesAddIndex <- unique(c(H$indexCurve$text,curves))
+
+  Missing <- setdiff(curvesAddIndex,H$logCurveInfoDT[,mnemonic])
+  if(length(Missing) > 0) stop(paste0("Curve(s) ",Missing,collapse = ","," not present in Log Header"))
+
+  Curves <- H$logCurveInfoDT[.(curvesAddIndex)][!is.na(`.attrs`)]
+
   Curves[, RType := fcase(typeLogData == "date time","POSIXct",
                           typeLogData == "double","numeric",
                           typeLogData == "integer","integer",
+                          typeLogData == "unitless","character",
                           default = "character")]
 
 
@@ -88,7 +106,7 @@ GetLogData <- function(url = NULL,
 
       Q <- TimeQueryBuilder(uidWell = uidWell,
                             uid = uid,
-                            curves = curves,
+                            curves = Curves[, mnemonic],
                             startDateTimeIndex = QueryStart,
                             endDateTimeIndex = QueryEnd)
 
@@ -146,8 +164,89 @@ GetLogData <- function(url = NULL,
     if(!anyDuplicated(LD[[H$indexCurve$text]]) == 0) warning("Unexpected duplicated rows returned")
     return(LD)
 
-  } else if(H$indexType == "measureddepth") {
-    stop("Depth Logs Not Yet Supported")
+  } else if(H$indexType == "measured depth") {
+    ## Default to log start/end
+    QueryStart <- DataStart <- as.numeric(H$startIndex$text)
+    QueryEnd <- DataEnd <- as.numeric(H$endIndex$text)
+
+
+    ## Override start if user wants something after the beginning of the log
+    if(!is.null(startIndex)){
+      if(startIndex > DataStart) QueryStart <- startIndex
+    }
+
+    ## Override start if user wants something before the end of the log
+    if(!is.null(endIndex)) {
+      if(endIndex < DataEnd) QueryEnd <- endIndex
+    }
+
+    ## Initialize some variables to loop through pages until we
+    Pages <- vector(mode = "list", length = 2^15)
+    LastReceived <- -Inf
+    i <- 0L
+
+    while(QueryEnd >= LastReceived & QueryEnd > QueryStart){
+
+      i <- i + 1
+
+      Q <- DepthQueryBuilder(uidWell = uidWell,
+                            uid = uid,
+                            curves = Curves[, mnemonic],
+                            startIndex = QueryStart,
+                            endIndex = QueryEnd)
+
+      Handle <- curl::new_handle(verbose = verbose)
+
+      curl::handle_setheaders(Handle,
+                              "Authorization" = paste0("Basic ",jsonlite::base64_enc(paste0(user,":",password))),
+                              "Accept-Encoding" = "gzip",
+                              "Accept" = "application/json, text/xml, application/xml, */*",
+                              "Content-Type" = "text/xml")
+
+      curl::handle_setopt(Handle,.list = list(customrequest = "POST",
+                                              postfields = Q))
+
+      Result <- curl::curl_fetch_memory(url,Handle)
+
+      if(!Result$status_code == 200){
+        stop(paste0("HTTP Status Code: ",Result$status_code,
+                    "\n\nContent: ",rawToChar(Result$content)))
+      }
+
+      Result$content %>%
+        rawToChar() %>%
+        gsub("&lt;","<", .,fixed = T) %>%
+        gsub("&gt;",">", .,fixed = T) -> Raw
+
+
+      ## In order to parse as valid XML, each
+      Start <- stringi::stri_locate_first_fixed(Raw,"<log ")[1,"start"]
+      End <- stringi::stri_locate_last_fixed(Raw,"</log>")[1,"end"]
+      X <- XML::xmlParseString(substr(Raw,Start,End))
+      Root <- XML::xmlRoot(X)
+
+      ## Extract only the log data and read string as a data.table
+      ## Use the data in Curves DT to map column names and types for fread to use
+      XML::xpathSApply(X, path = "//log/logData/data", XML::xmlValue) %>%
+        paste0(., collapse = "\n") %>%
+        fread(.,
+              header = FALSE,
+              col.names = Curves[,mnemonic],
+              colClasses = Curves[,RType]) -> Pages[[i]]
+
+      ## Update the latest record we've received based on the index column (always included)
+      LastReceived <- Pages[[i]][.N,DEPT]
+
+      if(printProgress) print(LastReceived)
+
+      ## Define Start time for the next "page" of results using proper timestamp format
+      QueryStart <- LastReceived + 0.0001
+    }
+
+
+    LD  <- rbindlist(Pages)
+    if(!anyDuplicated(LD[[H$indexCurve$text]]) == 0) warning("Unexpected duplicated rows returned")
+    return(LD)
   } else {
     stop("Log Index Type Not Supported")
   }
@@ -190,6 +289,60 @@ TimeQueryBuilder <- function(uidWell = NULL,
         &lt;stepIncrement uom="" numerator="" denominator="" /&gt;
         &lt;startDateTimeIndex&gt; ',startDateTimeIndex,' &lt;/startDateTimeIndex&gt;
         &lt;endDateTimeIndex&gt; ',endDateTimeIndex,' &lt;/endDateTimeIndex&gt;
+        &lt;direction /&gt;
+        &lt;indexCurve columnIndex="" /&gt;
+        ',curvesets,'
+
+        &lt;logData&gt;
+        &lt;data /&gt;
+        &lt;/logData&gt;
+        &lt;/log&gt;
+        &lt;/logs&gt;</QueryIn>
+        <OptionsIn xsi:type="xsd:string">returnElements=requested;compression=gzip;</OptionsIn>
+      </q1:WMLS_GetFromStore>
+    </soap:Body>
+  </soap:Envelope>
+  ')
+
+}
+
+
+DepthQueryBuilder <- function(uidWell = NULL,
+                              uid = NULL,
+                              curves = NULL,
+                              startIndex = NULL,
+                              endIndex = NULL) {
+
+
+  curvesets <- paste0(paste0('
+        &lt;logCurveInfo uid=""&gt;
+          &lt;mnemonic&gt;',curves,'&lt;/mnemonic&gt;
+        &lt;/logCurveInfo&gt;'), collapse = "\n")
+
+  paste0('
+  <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://www.witsml.org/wsdl/120" xmlns:types="http://www.witsml.org/wsdl/120/encodedTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+      <q1:WMLS_GetFromStore xmlns:q1="http://www.witsml.org/message/120">
+        <WMLtypeIn xsi:type="xsd:string">log</WMLtypeIn>
+        <QueryIn xsi:type="xsd:string">&lt;logs xmlns="http://www.witsml.org/schemas/131" version="1.3.1.1"&gt;
+        &lt;log uidWell="',uidWell,'" uidWellbore="" uid="',uid,'"&gt;
+        &lt;nameWell /&gt;
+        &lt;nameWellbore /&gt;
+        &lt;name /&gt;
+        &lt;objectGrowing /&gt;
+        &lt;dataRowCount /&gt;
+        &lt;serviceCompany /&gt;
+        &lt;runNumber /&gt;
+        &lt;bhaRunNumber /&gt;
+        &lt;pass /&gt;
+        &lt;creationDate /&gt;
+        &lt;description /&gt;
+        &lt;indexType /&gt;
+        &lt;startIndex&gt; ',startIndex,' &lt;/startIndex&gt;
+        &lt;endIndex&gt; ',endIndex,' &lt;/endIndex&gt;
+        &lt;stepIncrement uom="" numerator="" denominator="" /&gt;
+        &lt;startDateTimeIndex /&gt;
+        &lt;endDateTimeIndex /&gt;
         &lt;direction /&gt;
         &lt;indexCurve columnIndex="" /&gt;
         ',curvesets,'

@@ -127,7 +127,17 @@ GetLogHeader <- function(url = NULL,
 
   LogDetails <- XML::xmlToList(Root)[['log']]
 
-  logCurveInfoDT <- rbindlist(LogDetails[which(names(LogDetails) == "logCurveInfo")])
+  x <- LogDetails[which(names(LogDetails) == "logCurveInfo")]
+
+  logCurveInfoDT <- data.table(mnemonic = sapply(x, `[[`, "mnemonic"),
+                               unit = sapply(x, `[[`, "unit"),
+                               # minIndex = sapply(sapply(x, `[[`, "minIndex"), `[[`, "text"),
+                               # maxIndex = sapply(sapply(x, `[[`, "maxIndex"), `[[`, "text"),
+                               columnIndex = sapply(x, `[[`, "columnIndex"),
+                               curveDescription = sapply(x, `[[`, "columnIndex"),
+                               typeLogData = sapply(x, `[[`, "typeLogData"),
+                               `.attrs` = sapply(x, `[[`, ".attrs"))
+
   LogDetails$logCurveInfoDT <- logCurveInfoDT
 
   return(LogDetails)

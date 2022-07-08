@@ -1,9 +1,9 @@
 Package: RWITSML
 Type: Package
-Title: R package to interact with WITSML stores
+Title: R package to interact with Well-site Information Transfer Standard Markup Language (WITSML) data stores
 Version: 0.0.1
 Authors@R: person("Matt", "Summersgill", email = "matt.summersgill@hpidc.com",role = c("aut", "cre"))
-Description: Provides functions for interacting with WITSML stores and extracting data for use with R
+Description: Provides functions for interacting with Well-site Information Transfer Standard Markup Language (WITSML) data stores and extracting data for use with R
 License: License: MPL-2.0
 Imports: 
   data.table,
