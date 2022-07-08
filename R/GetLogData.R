@@ -8,8 +8,9 @@
 #' @param curves Character vector containing a list of mnemonic keys for log results required
 #' @param startDateTimeIndex An optional UTC character timestamp specifying the desired start of a time based log
 #' @param endDateTimeIndex An optional UTC character timestamp specifying the desired end of a time based log
-#' @param startIndex (Not yet implemented) An optional depth value specifying the desired start of a depth based log
-#' @param endIndex (Not yet implemented) An optional depth value specifying the desired end of a depth based log
+#' @param startIndex An optional depth value specifying the desired start of a depth based log
+#' @param endIndex An optional depth value specifying the desired end of a depth based log
+#' @param printProgress Option to print the end of each data chunk received when pagination is required
 #' @return A data.table object with the specified log data
 #' @examples
 #' RWITSML::GetLogData(url = "https://hub.us.pason.com/hub/witsml/store",

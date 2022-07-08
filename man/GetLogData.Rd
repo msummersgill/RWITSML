@@ -36,9 +36,11 @@ GetLogData(
 
 \item{endDateTimeIndex}{An optional UTC character timestamp specifying the desired end of a time based log}
 
-\item{startIndex}{(Not yet implemented) An optional depth value specifying the desired start of a depth based log}
+\item{startIndex}{An optional depth value specifying the desired start of a depth based log}
 
-\item{endIndex}{(Not yet implemented) An optional depth value specifying the desired end of a depth based log}
+\item{endIndex}{An optional depth value specifying the desired end of a depth based log}
+
+\item{printProgress}{Option to print the end of each data chunk received when pagination is required}
 }
 \value{
 A data.table object with the specified log data
@@ -55,6 +57,16 @@ RWITSML::GetLogData(url = "https://hub.us.pason.com/hub/witsml/store",
                     curves = c("TIME","DEPT","BDEP"),
                     startDateTimeIndex = "2022-04-01T00:00:00+00:00",
                     endDateTimeIndex = "2022-04-01T00:04:59+00:00",
+                    verbose = FALSE)
+
+RWITSML::GetLogData(url = "https://hub.us.pason.com/hub/witsml/store",
+                    user = hpidc::GetKeys()$pason$user,
+                    password = hpidc::GetKeys()$pason$password,
+                    uidWell = "us_27990298",
+                    uid = "us_27990298_wb1_log_1",
+                    curves = c("GAM","INCL","AZ"),
+                    startIndex = 1,
+                    endIndex = 24645,
                     verbose = FALSE)
 
 }
