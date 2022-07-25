@@ -1,6 +1,9 @@
 ---
 title: "RWITSML-Introduction"
-output: rmarkdown::html_vignette
+output: 
+  html_document:
+    toc: true
+    toc_float: true
 vignette: >
   %\VignetteIndexEntry{RWITSML-Introduction}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,7 +18,11 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(RWITSML)
+suppressPackageStartupMessages({
+  library(RWITSML)
+  library(data.table)
+  library(plotly)
+})
 ```
 
 
@@ -38,6 +45,55 @@ WL <- RWITSML::GetWells(url = "https://hub.us.pason.com/hub/witsml/store",
                         verbose = FALSE)
 
 WL[statusWell == "drilling"][, .(uid, operator, name, state)]
+
+```
+
+## Get Summary of Logs
+
+```{r}
+
+L <- RWITSML::GetLogs(url = "https://hub.us.pason.com/hub/witsml/store",
+                 user = hpidc::GetKeys()$pason$user,
+                 password = hpidc::GetKeys()$pason$password,
+                 uidWell = "us_28147307",
+                 verbose = FALSE)
+
+L
+```
+
+
+
+## Get Log Headers
+
+```{r}
+H <- RWITSML::GetLogHeader(url = "https://hub.us.pason.com/hub/witsml/store",
+                           user = hpidc::GetKeys()$pason$user,
+                           password = hpidc::GetKeys()$pason$password,
+                           uidWell = "us_27990298",
+                           uid = "us_27990298_wb1_log_1")
+
+H$logCurveInfoDT
+```
+
+
+
+## Plot a Log
+
+```{r}
+LD <- RWITSML::GetLogData(url = "https://hub.us.pason.com/hub/witsml/store",
+                    user = hpidc::GetKeys()$pason$user,
+                    password = hpidc::GetKeys()$pason$password,
+                    uidWell = "us_27990298",
+                    uid = "us_27990298_wb1_log_1",
+                    curves = c("GAM","INCL","AZ"),
+                    startIndex = 1,
+                    endIndex = 24645,
+                    verbose = FALSE,
+                    printProgress = FALSE)
+LD %>% 
+  plot_ly() %>% 
+  add_lines(x = ~DEPT, y = ~fifelse(between(GAM,10,200), GAM, NA_real_), name = "Gamma") %>% 
+  layout(yaxis = list(title = "Gamma (api)"))
 
 ```
 
