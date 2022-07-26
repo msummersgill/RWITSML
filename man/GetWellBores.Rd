@@ -20,6 +20,8 @@ GetWellBores(
 \item{password}{Username for the authenticating user}
 
 \item{uidWell}{Unique Identifier for the Parent Well}
+
+\item{verbose}{if TRUE, verbose output from underlying curl functions will be printed to console. Useful for troubleshooting}
 }
 \value{
 A nested list with all wellbores for a given well
@@ -34,4 +36,9 @@ RWITSML::GetWellBores(url = "https://hub.us.pason.com/hub/witsml/store",
                       uidWell = "us_28147307",
                       verbose = FALSE)
 
+RWITSML::GetWellBores(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+                      user = hpidc::GetKeys()$totco$user,
+                      password = hpidc::GetKeys()$totco$password,
+                      uidWell = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                      verbose = FALSE)
 }

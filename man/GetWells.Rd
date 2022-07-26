@@ -12,6 +12,8 @@ GetWells(url = NULL, user = NULL, password = NULL, verbose = FALSE)
 \item{user}{Username for the authenticating user}
 
 \item{password}{Username for the authenticating user}
+
+\item{verbose}{if TRUE, verbose output from underlying curl functions will be printed to console. Useful for troubleshooting}
 }
 \value{
 A data.table with all wells available
@@ -23,6 +25,11 @@ Pull a list of all wells from a WITSML Store
 RWITSML::GetWells(url = "https://hub.us.pason.com/hub/witsml/store",
                   user = hpidc::GetKeys()$pason$user,
                   password = hpidc::GetKeys()$pason$password,
-                  verbose = TRUE)
+                  verbose = FALSE)
+
+RWITSML::GetWells(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+                  user = hpidc::GetKeys()$totco$user,
+                  password = hpidc::GetKeys()$totco$password,
+                  verbose = FALSE)
 
 }

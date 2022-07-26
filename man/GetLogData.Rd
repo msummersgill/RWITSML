@@ -8,9 +8,10 @@ GetLogData(
   url = NULL,
   user = NULL,
   password = NULL,
-  uidWell = "us_27990298",
-  uid = "us_27990298_wb1_log_dfr_time_1s",
-  curves = c("TIME", "DEPT", "BDEP"),
+  uidWell = NULL,
+  uidWellbore = NULL,
+  uid = NULL,
+  curves = NULL,
   startDateTimeIndex = NULL,
   endDateTimeIndex = NULL,
   startIndex = NULL,
@@ -30,7 +31,7 @@ GetLogData(
 
 \item{uid}{Unique Identifier for the Log}
 
-\item{curves}{Character vector containing a list of mnemonic keys for log results required}
+\item{curves}{Character vector containing a list of mnemonic keys for log results required. If blank, defaults to all}
 
 \item{startDateTimeIndex}{An optional UTC character timestamp specifying the desired start of a time based log}
 
@@ -41,6 +42,8 @@ GetLogData(
 \item{endIndex}{An optional depth value specifying the desired end of a depth based log}
 
 \item{printProgress}{Option to print the end of each data chunk received when pagination is required}
+
+\item{verbose}{if TRUE, verbose output from underlying curl functions will be printed to console. Useful for troubleshooting}
 }
 \value{
 A data.table object with the specified log data
@@ -67,6 +70,30 @@ RWITSML::GetLogData(url = "https://hub.us.pason.com/hub/witsml/store",
                     curves = c("GAM","INCL","AZ"),
                     startIndex = 1,
                     endIndex = 24645,
+                    verbose = FALSE)
+
+RWITSML::GetLogData(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+                    user = hpidc::GetKeys()$totco$user,
+                    password = hpidc::GetKeys()$totco$password,
+                    uidWell = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                    uidWellbore = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                    uid = "Depth1",
+                    curves = c("GAMMA_RAY_DEPTH","GAMMA_RAY"),
+                    startIndex = NULL,
+                    endIndex = NULL,
+                    printProgress = FALSE,
+                    verbose = FALSE)
+
+RWITSML::GetLogData(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+                    user = hpidc::GetKeys()$totco$user,
+                    password = hpidc::GetKeys()$totco$password,
+                    uidWell = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                    uidWellbore = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                    uid = "Time_120Sec",
+                    curves = c("BIT_DEPTH","TOT_DPT_MD"),
+                    startDateTimeIndex = "2022-07-20T00:00:00+00:00",
+                    endDateTimeIndex = "2022-07-20T23:59:59+00:00",
+                    printProgress = FALSE,
                     verbose = FALSE)
 
 }

@@ -9,6 +9,7 @@ GetLogs(
   user = NULL,
   password = NULL,
   uidWell = NULL,
+  uidWellbore = NULL,
   verbose = FALSE
 )
 }
@@ -20,6 +21,8 @@ GetLogs(
 \item{password}{Username for the authenticating user}
 
 \item{uidWell}{Unique Identifier for the Parent Well}
+
+\item{uidWellbore}{Unique Identifier for the Associated Wellbore. Not required for Pason, required for MD-Totco}
 }
 \value{
 A nested list with all log headers for a given well
@@ -34,4 +37,10 @@ RWITSML::GetLogs(url = "https://hub.us.pason.com/hub/witsml/store",
                  uidWell = "us_28147307",
                  verbose = FALSE)
 
+RWITSML::GetLogs(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+                 user = hpidc::GetKeys()$totco$user,
+                 password = hpidc::GetKeys()$totco$password,
+                 uidWell = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                 uidWellbore = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                 verbose = FALSE)
 }

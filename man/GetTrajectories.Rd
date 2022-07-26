@@ -9,6 +9,8 @@ GetTrajectories(
   user = NULL,
   password = NULL,
   uidWell = NULL,
+  uidWellbore = NULL,
+  uid = NULL,
   verbose = FALSE
 )
 }
@@ -20,6 +22,12 @@ GetTrajectories(
 \item{password}{Username for the authenticating user}
 
 \item{uidWell}{Unique Identifier for the Parent Well}
+
+\item{uidWellbore}{Unique Identifier for the Associated Wellbore. Not required for Pason, required for MD-Totco}
+
+\item{uid}{Unique Identifier for the trajectory within a given Well Context. Required to pull actual survey data from MD-Totco}
+
+\item{verbose}{if TRUE, verbose output from underlying curl functions will be printed to console. Useful for troubleshooting}
 }
 \value{
 A nested list with all trajectories for a given well
@@ -31,7 +39,14 @@ Pull a list of trajectories for a given well from a WITSML Store
 RWITSML::GetTrajectories(url = "https://hub.us.pason.com/hub/witsml/store",
                          user = hpidc::GetKeys()$pason$user,
                          password = hpidc::GetKeys()$pason$password,
-                         uidWell = "us_28147307"
+                         uidWell = "us_28147307",
                          verbose = FALSE)
 
+RWITSML::GetTrajectories(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+                         user = hpidc::GetKeys()$totco$user,
+                         password = hpidc::GetKeys()$totco$password,
+                         uidWell = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                         uidWellbore = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                         uid = "Connect-Surveys",
+                         verbose = FALSE)
 }

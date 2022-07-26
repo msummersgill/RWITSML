@@ -4,6 +4,7 @@
 #' @param user Username for the authenticating user
 #' @param password Username for the authenticating user
 #' @param uidWell Unique Identifier for the Parent Well
+#' @param uidWellbore Unique Identifier for the Associated Wellbore. Not required for Pason, required for MD-Totco
 #' @return A nested list with all log headers for a given well
 #' @examples
 #' RWITSML::GetLogs(url = "https://hub.us.pason.com/hub/witsml/store",
@@ -12,19 +13,29 @@
 #'                  uidWell = "us_28147307",
 #'                  verbose = FALSE)
 #'
+#' RWITSML::GetLogs(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+#'                  user = hpidc::GetKeys()$totco$user,
+#'                  password = hpidc::GetKeys()$totco$password,
+#'                  uidWell = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+#'                  uidWellbore = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+#'                  verbose = FALSE)
 
 GetLogs <- function(url = NULL,
-                         user = NULL,
-                         password = NULL,
-                         uidWell = NULL,
-                         verbose = FALSE) {
+                    user = NULL,
+                    password = NULL,
+                    uidWell = NULL,
+                    uidWellbore = NULL,
+                    verbose = FALSE) {
+
+  if(is.null(uidWellbore)) uidWellbore <- ""
+
   Q <- paste0('
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://www.witsml.org/wsdl/120" xmlns:types="http://www.witsml.org/wsdl/120/encodedTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
     <q1:WMLS_GetFromStore xmlns:q1="http://www.witsml.org/message/120">
       <WMLtypeIn xsi:type="xsd:string">log</WMLtypeIn>
       <QueryIn xsi:type="xsd:string">&lt;logs xmlns="http://www.witsml.org/schemas/131" version="1.3.1.1"&gt;
-        &lt;log uidWell="',uidWell,'" uidWellbore="" uid=""&gt;
+        &lt;log uidWell="',uidWell,'" uidWellbore="',uidWellbore,'" uid=""&gt;
           &lt;nameWell /&gt;
           &lt;nameWellbore /&gt;
           &lt;name /&gt;
@@ -84,7 +95,7 @@ GetLogs <- function(url = NULL,
             &lt;comments /&gt;
           &lt;/commonData&gt;
           &lt;customData /&gt;
-          &lt;/log&gt;
+        &lt;/log&gt;
       &lt;/logs&gt;</QueryIn>
       <OptionsIn xsi:type="xsd:string">returnElements=header-only</OptionsIn>
     </q1:WMLS_GetFromStore>

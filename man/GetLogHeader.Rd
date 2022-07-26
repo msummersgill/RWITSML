@@ -9,6 +9,7 @@ GetLogHeader(
   user = NULL,
   password = NULL,
   uidWell = NULL,
+  uidWellbore = NULL,
   uid = NULL,
   verbose = FALSE
 )
@@ -22,10 +23,14 @@ GetLogHeader(
 
 \item{uidWell}{Unique Identifier for the Parent Well}
 
+\item{uidWellbore}{Unique Identifier for the Associated Wellbore. Not required for Pason, required for MD-Totco}
+
 \item{uid}{Unique Identifier for the Log}
+
+\item{verbose}{if TRUE, verbose output from underlying curl functions will be printed to console. Useful for troubleshooting}
 }
 \value{
-A nested list with all log headers for a given well
+A nested list with the log header for a specific log
 }
 \description{
 Pull a specific log header from a WITSML Store
@@ -38,4 +43,11 @@ RWITSML::GetLogHeader(url = "https://hub.us.pason.com/hub/witsml/store",
                        uid = "us_27990298_wb1_log_dfr_time_1s",
                        verbose = FALSE)
 
+RWITSML::GetLogHeader(url = "https://witsml.welldata.net/witsml/wmls.asmx",
+                      user = hpidc::GetKeys()$totco$user,
+                      password = hpidc::GetKeys()$totco$password,
+                      uidWell = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                      uidWellbore = "9ce20147-e1d4-45db-a8cb-bedb3e50b65e",
+                      uid = "Depth1",
+                      verbose = TRUE)
 }
